@@ -141,6 +141,7 @@ struct Config {
     float tolerance = 2.0f;
     int max_shares = 100;
     int trade_increment = 10;
+    bool verbose = false;
 };
 
 // -----------------------------
@@ -154,6 +155,7 @@ void print_usage(const char* program_name) {
     std::cout << "  --tolerance <float>       Buy/sell tolerance (default: 2.0)\n";
     std::cout << "  --max-shares <int>        Maximum shares to own (default: 100)\n";
     std::cout << "  --trade-increment <int>   Shares per trade (default: 10)\n";
+    std::cout << "  --verbose                 Show detailed trade logs (default: off)\n";
     std::cout << "  --help                    Show this help message\n";
 }
 
@@ -180,6 +182,9 @@ Config parse_args(int argc, char* argv[]) {
         else if (strcmp(argv[i], "--trade-increment") == 0 && i + 1 < argc) {
             config.trade_increment = std::atoi(argv[++i]);
         }
+        else if (strcmp(argv[i], "--verbose") == 0) {
+            config.verbose = true;
+        }
         else {
             std::cerr << "Unknown argument: " << argv[i] << "\n";
             print_usage(argv[0]);
@@ -194,7 +199,7 @@ Config parse_args(int argc, char* argv[]) {
 // CPU-Based Portfolio Backtesting Function
 // -----------------------------
 void run_backtest(const float* prices, const int* signals, const float* moving_avg, 
-                  int N, int window_size, int max_shares = 100, int trade_increment = 10) {
+                  int N, int window_size, int max_shares = 100, int trade_increment = 10, bool verbose = false) {
     
     // Initialize portfolio state
     int shares_owned = 0;
@@ -237,9 +242,12 @@ void run_backtest(const float* prices, const int* signals, const float* moving_a
                 total_trades++;
                 buy_trades++;
                 
-                std::cout << "Day " << i << ": BUY  " << shares_to_buy << " shares @ $" << current_price 
-                         << " | Portfolio: $" << (cash + shares_owned * current_price) 
-                         << " (" << shares_owned << " shares, $" << cash << " cash)\n";
+                if (verbose) {
+                    std::cout << "Tick " << i << ": BUY  " << shares_to_buy 
+                              << " shares @ $" << current_price 
+                              << " | Portfolio: $" << current_portfolio_value 
+                              << " (" << shares_owned << " shares, $" << cash << " cash)" << std::endl;
+                }
             }
         }
         else if (signals[i] == -1 && shares_owned > 0) {  // SELL signal
@@ -251,9 +259,12 @@ void run_backtest(const float* prices, const int* signals, const float* moving_a
             total_trades++;
             sell_trades++;
             
-            std::cout << "Day " << i << ": SELL " << shares_to_sell << " shares @ $" << current_price 
-                     << " | Portfolio: $" << (cash + shares_owned * current_price) 
-                     << " (" << shares_owned << " shares, $" << cash << " cash)\n";
+            if (verbose) {
+                std::cout << "Tick " << i << ": SELL " << shares_to_sell 
+                          << " shares @ $" << current_price 
+                          << " | Portfolio: $" << current_portfolio_value 
+                          << " (" << shares_owned << " shares, $" << cash << " cash)" << std::endl;
+            }
         }
         // HOLD: do nothing, just track portfolio value
     }
@@ -272,21 +283,23 @@ void run_backtest(const float* prices, const int* signals, const float* moving_a
     std::cout << "Total Trades: " << total_trades << " (" << buy_trades << " buys, " << sell_trades << " sells)\n";
     std::cout << "Final Position: " << shares_owned << " shares, $" << cash << " cash\n\n";
 
-    // Output first 20 trading signals for verification
-    std::cout << "--- First 20 Trading Signals (for verification) ---\n";
-    int signals_shown = 0;
-    for (int i = window_size - 1; i < N && signals_shown < 20; i++) {
-        if (signals[i] == 1) {
-            std::cout << "Day " << i << ": BUY  @ Price = " << prices[i]
-                    << ", MA = " << moving_avg[i] << std::endl;
-        } else if (signals[i] == -1) {
-            std::cout << "Day " << i << ": SELL @ Price = " << prices[i]
-                    << ", MA = " << moving_avg[i] << std::endl;
-        } else {
-            std::cout << "Day " << i << ": HOLD @ Price = " << prices[i]
-                    << ", MA = " << moving_avg[i] << std::endl;
+    // Output first 20 trading signals for verification (only in verbose mode)
+    if (verbose) {
+        std::cout << "--- First 20 Trading Signals (for verification) ---\n";
+        int signals_shown = 0;
+        for (int i = window_size - 1; i < N && signals_shown < 20; i++) {
+            if (signals[i] == 1) {
+                std::cout << "Tick " << i << ": BUY  @ Price = " << prices[i]
+                        << ", MA = " << moving_avg[i] << std::endl;
+            } else if (signals[i] == -1) {
+                std::cout << "Tick " << i << ": SELL @ Price = " << prices[i]
+                        << ", MA = " << moving_avg[i] << std::endl;
+            } else {
+                std::cout << "Tick " << i << ": HOLD @ Price = " << prices[i]
+                        << ", MA = " << moving_avg[i] << std::endl;
+            }
+            signals_shown++;
         }
-        signals_shown++;
     }
 }
 
@@ -341,7 +354,7 @@ int main(int argc, char* argv[]) {
     cudaMemcpy(h_flags, d_flags, N * sizeof(int), cudaMemcpyDeviceToHost);
 
     // Run backtesting simulation
-    run_backtest(h_prices, h_flags, h_moving_avg, N, config.window_size, config.max_shares, config.trade_increment);
+    run_backtest(h_prices, h_flags, h_moving_avg, N, config.window_size, config.max_shares, config.trade_increment, config.verbose);
 
     // Cleanup
     cudaFree(d_prices);
