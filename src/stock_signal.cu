@@ -9,6 +9,8 @@
 #include <cstring>
 #include <cuda_runtime.h>
 
+#include "stock_signal.cuh"
+
 // -----------------------------
 // CUDA Kernel: Moving Average (Global Memory) - now unused in favor of shared memory
 // -----------------------------
@@ -94,112 +96,11 @@ __global__ void detect_signals_combined(const float* prices, const float* moving
     }
 }
 
-
-// -------------------------------------
-// Read prices from CSV
-// -------------------------------------
-bool read_prices_from_csv(const std::string& filename, std::vector<float>& prices_out) {
-    std::ifstream file(filename);
-    if (!file.is_open()) {
-        std::cerr << "ERROR: Failed to open CSV file: " << filename << std::endl;
-        return false;
-    }
-
-    std::string line;
-    bool first_line = true;
-
-    while (std::getline(file, line)) {
-        if (first_line) {
-            first_line = false; // Skip header
-            continue;
-        }
-
-        std::stringstream ss(line);
-        std::string day_str, price_str;
-
-        if (!std::getline(ss, day_str, ',') || !std::getline(ss, price_str)) {
-            continue;
-        }
-
-        try {
-            float price = std::stof(price_str);
-            prices_out.push_back(price);
-        } catch (...) {
-            std::cerr << "Warning: Skipping invalid line: " << line << std::endl;
-        }
-    }
-
-    return true;
-}
-
-// -----------------------------
-// Configuration Structure
-// -----------------------------
-struct Config {
-    std::string csv_filename = "src/tsla_intraday.csv";
-    int window_size = 30;
-    float tolerance = 2.0f;
-    int max_shares = 100;
-    int trade_increment = 10;
-    bool verbose = false;
-};
-
-// -----------------------------
-// CLI Argument Parsing
-// -----------------------------
-void print_usage(const char* program_name) {
-    std::cout << "Usage: " << program_name << " [options]\n";
-    std::cout << "Options:\n";
-    std::cout << "  --csv-file <filename>     CSV file path (default: src/tsla_intraday.csv)\n";
-    std::cout << "  --window-size <int>       Moving average window size (default: 30)\n";
-    std::cout << "  --tolerance <float>       Buy/sell tolerance (default: 2.0)\n";
-    std::cout << "  --max-shares <int>        Maximum shares to own (default: 100)\n";
-    std::cout << "  --trade-increment <int>   Shares per trade (default: 10)\n";
-    std::cout << "  --verbose                 Show detailed trade logs (default: off)\n";
-    std::cout << "  --help                    Show this help message\n";
-}
-
-Config parse_args(int argc, char* argv[]) {
-    Config config;
-    
-    for (int i = 1; i < argc; i++) {
-        if (strcmp(argv[i], "--help") == 0) {
-            print_usage(argv[0]);
-            exit(0);
-        }
-        else if (strcmp(argv[i], "--csv-file") == 0 && i + 1 < argc) {
-            config.csv_filename = argv[++i];
-        }
-        else if (strcmp(argv[i], "--window-size") == 0 && i + 1 < argc) {
-            config.window_size = std::atoi(argv[++i]);
-        }
-        else if (strcmp(argv[i], "--tolerance") == 0 && i + 1 < argc) {
-            config.tolerance = std::atof(argv[++i]);
-        }
-        else if (strcmp(argv[i], "--max-shares") == 0 && i + 1 < argc) {
-            config.max_shares = std::atoi(argv[++i]);
-        }
-        else if (strcmp(argv[i], "--trade-increment") == 0 && i + 1 < argc) {
-            config.trade_increment = std::atoi(argv[++i]);
-        }
-        else if (strcmp(argv[i], "--verbose") == 0) {
-            config.verbose = true;
-        }
-        else {
-            std::cerr << "Unknown argument: " << argv[i] << "\n";
-            print_usage(argv[0]);
-            exit(1);
-        }
-    }
-    
-    return config;
-}
-
 // -----------------------------
 // CPU-Based Portfolio Backtesting Function
 // -----------------------------
 void run_backtest(const float* prices, const int* signals, const float* moving_avg, 
-                  int N, int window_size, int max_shares = 100, int trade_increment = 10, bool verbose = false) {
+                  int N, int window_size, int max_shares, int trade_increment, bool verbose) {
     
     // Initialize portfolio state
     int shares_owned = 0;

@@ -4,6 +4,9 @@
 #include <random>
 #include <cmath>
 
+// This code generates a random stock price series based on a geometric Brownian motion model.
+// It exports the prices to a CSV file.
+
 int main() {
     // Parameters
     double S0 = 50.0;     // Initial stock price
