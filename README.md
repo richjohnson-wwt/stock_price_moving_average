@@ -105,5 +105,7 @@ Best result is from tolerance=2.5 and window=30.
     curl "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=TSLA&interval=1min&outputsize=full&datatype=csv&apikey=<api_key>" -o tsla_intraday.csv
 
 data/stock_prices.csv    contains 2521 simulated stock prices from src/price_generator.cpp using a random walking simulation.
+
 data/tsla_prices.csv     was downloaded from alpha vantage and contains 3.8k daily open prices for TSLA.
+
 data/tsla_intraday.csv   was downloaded from alpha vantage and contains 21k intraday prices for TSLA over the month of August 2025.
