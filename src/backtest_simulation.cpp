@@ -4,7 +4,7 @@
 #include <cmath>
 
 // -----------------------------
-// Pure Portfolio Calculation Logic (Testable)
+// Pure Portfolio Calculation Logic (Testable) (CPU)
 // -----------------------------
 BacktestResult calculate_backtest(const float* prices, const int* signals, 
                                  int N, int window_size, int max_shares, int trade_increment) {
@@ -79,7 +79,7 @@ BacktestResult calculate_backtest(const float* prices, const int* signals,
 }
 
 // -----------------------------
-// Display Wrapper Function
+// Display Wrapper Function (CPU)
 // -----------------------------
 void run_backtest(const float* prices, const int* signals, const float* moving_avg, 
                   int N, int window_size, int max_shares, int trade_increment, bool verbose) {

@@ -83,6 +83,7 @@ Usage:
     ./src/stock_signal --tolerance 3.0 --window-size 25 --trade-increment 20 --verbose
     ./src/stock_signal --help
     ./src/stock_signal --csv-file stock_prices.csv
+    ./src/stock_signal --csv-file nvda_intraday.csv --window-size 30 --tolerance 2.5
 
 
 #### Bash script to run some permutations of the tolerance and window-size combinations:
@@ -90,7 +91,7 @@ Usage:
     for tol in 1.5 2.0 2.5 3.0 3.5; do
         for win in 20 25 30 35; do
             echo "=== Testing tolerance=$tol, window=$win ==="
-            ./src/stock_signal --tolerance $tol --window-size $win
+            ./src/stock_signal --tolerance $tol --window-size $win --csv-file nvda_intraday.csv
         done
     done
 
@@ -100,12 +101,16 @@ Best result is from tolerance=2.5 and window=30.
 
 #### Data Directory
 
-    To download the stock data, use the following command:
+To download the stock data, use the following command:
+
+Go to https://www.alphavantage.co/support/#api-key and sign up for a free API key.
 
     curl "https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=TSLA&interval=1min&outputsize=full&datatype=csv&apikey=<api_key>" -o tsla_intraday.csv
 
-data/stock_prices.csv    contains 2521 simulated stock prices from src/price_generator.cpp using a random walking simulation.
+* data/stock_prices.csv  -  contains 2521 simulated stock prices from src/price_generator.cpp using a random walking simulation.
 
-data/tsla_prices.csv     was downloaded from alpha vantage and contains 3.8k daily open prices for TSLA.
+* data/tsla_intraday.csv -  was downloaded from alpha vantage and contains 21k intraday prices for TSLA over the month of August 2025.
 
-data/tsla_intraday.csv   was downloaded from alpha vantage and contains 21k intraday prices for TSLA over the month of August 2025.
+* data/pacb_intraday.csv -  was downloaded from alpha vantage and contains 10k intraday prices for PACB over the month of August 2025.
+
+* data/nvda_intraday.csv -  was downloaded from alpha vantage and contains 21k intraday prices for NVDA over the month of August 2025.
