@@ -13,3 +13,14 @@ include(CTest)
 include(Catch)
 catch_discover_tests(csv_reader_test)
 
+add_executable(backtest_simulation_test backtest_simulation_test.cpp ../src/backtest_simulation.cpp)
+target_link_libraries(backtest_simulation_test PRIVATE Catch2::Catch2WithMain)
+target_include_directories(backtest_simulation_test PRIVATE ../src)
+
+# Define the test data directory as a compile-time constant
+target_compile_definitions(backtest_simulation_test PRIVATE 
+    DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../data")
+
+catch_discover_tests(backtest_simulation_test)
+
+

@@ -12,7 +12,26 @@ The stock_signal.cu app uses a configurable command line args to backtest the bu
 
 The price_generator.cpp app generates a random stock price series based on a geometric Brownian motion model. The generated prices are only used in tests.
 
-#### Intial Setup - Do every time a new VM is started
+## What is Backtesting?
+
+**Backtesting** is a financial/trading term that refers to testing a trading strategy or investment algorithm against historical market data to evaluate how it would have performed in the past. This is completely different from software testing:
+
+- **Financial Backtesting**: Simulates trading decisions using historical price data to measure strategy performance (profit/loss, win rate, drawdown, etc.)
+- **Software Testing**: Verifies that code functions correctly through unit tests, integration tests, etc.
+
+In this project:
+- **Backtesting** = Running our moving average trading strategy against historical TSLA price data to see if it would have been profitable
+- **Unit Testing** = Verifying our C++/CUDA code works correctly (using Catch2 framework in the `test/` directory)
+
+The backtesting results show metrics like:
+- Total profit/loss from the trading strategy
+- Number of winning vs losing trades
+- Portfolio value over time
+- Maximum drawdown (largest peak-to-trough decline)
+
+
+
+## Intial Setup - Do every time a new VM is started
 
     uv venv
     source .venv/bin/activate
@@ -37,6 +56,7 @@ The price_generator.cpp app generates a random stock price series based on a geo
 
     ./test/test_runner
     ctest
+    ctest --verbose
 
 #### Smoke testing from project root (not using CMake):
 
